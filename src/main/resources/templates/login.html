@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script>
+        function validateForm() {
+            var email = document.forms["loginForm"]["email"].value;
+            var password = document.forms["loginForm"]["password"].value;
+            var emailPattern = /^[\w-\.]+@[\w-\.]+$/;
+            var passwordPattern = /^[a-zA-Z0-9]+$/;
+
+            if (!emailPattern.test(email)) {
+                alert("Invalid email format");
+                return false;
+            }
+            if (!passwordPattern.test(password)) {
+                alert("Password contains invalid characters");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <h1>hello</h1>
+    <form name="loginForm" th:action="@{/login}" method="post" onsubmit="return validateForm()">
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <input type="submit" value="Login">
+    </form>
+    <p th:text="${message}"></p>
+</body>
+</html>
