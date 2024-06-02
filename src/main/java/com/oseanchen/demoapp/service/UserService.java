@@ -20,11 +20,6 @@ public class UserService {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-
-//    public User register(User user) {
-//        return userDao.save(user);
-//    }
-
     public User register(UserRegisterRequest userRegisterRequest) {
         User user = userDao.findByEmail(userRegisterRequest.getEmail());
 

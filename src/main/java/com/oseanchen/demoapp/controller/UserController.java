@@ -1,7 +1,11 @@
 package com.oseanchen.demoapp.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oseanchen.demoapp.dto.UserRegisterRequest;
+import com.oseanchen.demoapp.model.LoginStatistics;
 import com.oseanchen.demoapp.model.User;
+import com.oseanchen.demoapp.service.LoginStatisticsService;
 import com.oseanchen.demoapp.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -12,11 +16,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LoginStatisticsService loginStatisticsService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @PostMapping("register")
     public ResponseEntity<User> register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
@@ -36,11 +48,16 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String email, @RequestParam String password, Model model) {
+    public String login(@RequestParam String email, @RequestParam String password, Model model) throws JsonProcessingException {
         User user = userService.getUserByEmail(email);
         if (user != null) {
             model.addAttribute("message", "Login successful");
             model.addAttribute("email", user.getEmail());
+            loginStatisticsService.recordLogin();
+            List<LoginStatistics> statistics = loginStatisticsService.getAllStatistics();
+            String statisticsJson = objectMapper.writeValueAsString(statistics);
+            model.addAttribute("statistics", statistics);
+            model.addAttribute("statisticsForChart", statisticsJson);
             return "home";  // 返回 home.html 視圖
         }
         model.addAttribute("message", "Invalid credentials");
