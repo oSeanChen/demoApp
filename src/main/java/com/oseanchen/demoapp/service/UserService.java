@@ -1,6 +1,7 @@
 package com.oseanchen.demoapp.service;
 
 import com.oseanchen.demoapp.dao.UserDao;
+import com.oseanchen.demoapp.dto.UserLoginRequest;
 import com.oseanchen.demoapp.dto.UserRegisterRequest;
 import com.oseanchen.demoapp.model.User;
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
@@ -28,8 +30,8 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-//        String hashedPassword = DigestUtils.md5DigestAsHex(userRegisterRequest.getPassword().getBytes());
-//        userRegisterRequest.setPassword(hashedPassword);
+        String hashedPassword = DigestUtils.md5DigestAsHex(userRegisterRequest.getPassword().getBytes());
+        userRegisterRequest.setPassword(hashedPassword);
 
         User newUser = new User();
         newUser.setEmail(userRegisterRequest.getEmail());
@@ -38,7 +40,25 @@ public class UserService {
         return userDao.save(newUser);
     }
 
-    public User getUser(Long id) {
+    public User login(UserLoginRequest userLoginRequest) {
+        User user = getUserByEmail(userLoginRequest.getEmail());
+
+        if (user == null) {
+            log.warn("email {} is not registered", userLoginRequest.getEmail());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        String hashedPassword = DigestUtils.md5DigestAsHex(userLoginRequest.getPassword().getBytes());
+
+        if (user.getPassword().equals(hashedPassword)) {
+            return user;
+        } else {
+            log.warn("email {} passwords is not correct", userLoginRequest.getEmail());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public User getUserById(Long id) {
         return userDao.findById(id).orElse(null);
     }
 

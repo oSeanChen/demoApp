@@ -2,6 +2,7 @@ package com.oseanchen.demoapp.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oseanchen.demoapp.dto.UserLoginRequest;
 import com.oseanchen.demoapp.dto.UserRegisterRequest;
 import com.oseanchen.demoapp.model.LoginStatistics;
 import com.oseanchen.demoapp.model.User;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -34,23 +36,25 @@ public class UserController {
     public ResponseEntity<User> register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
         User user = userService.register(userRegisterRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
-
     }
 
     @GetMapping("users/{id}")
     public User getUserById(@PathVariable Long id) {
-        return userService.getUser(id);
+        return userService.getUserById(id);
     }
 
     @GetMapping("/login")
     public String loginPage() {
-        return "login";  // 返回 login.html 視圖
+        return "login";
     }
 
     @PostMapping("/login")
     public String login(@RequestParam String email, @RequestParam String password, Model model) throws JsonProcessingException {
-        User user = userService.getUserByEmail(email);
-        if (user != null) {
+        try {
+            UserLoginRequest userLoginRequest = new UserLoginRequest();
+            userLoginRequest.setEmail(email);
+            userLoginRequest.setPassword(password);
+            User user = userService.login(userLoginRequest);
             model.addAttribute("message", "Login successful");
             model.addAttribute("email", user.getEmail());
             loginStatisticsService.recordLogin();
@@ -58,10 +62,11 @@ public class UserController {
             String statisticsJson = objectMapper.writeValueAsString(statistics);
             model.addAttribute("statistics", statistics);
             model.addAttribute("statisticsForChart", statisticsJson);
-            return "home";  // 返回 home.html 視圖
+            return "home";
+        } catch (ResponseStatusException exception) {
+            model.addAttribute("message", "Invalid credentials");
+            return "login";
         }
-        model.addAttribute("message", "Invalid credentials");
-        return "login";  // 返回 login.html 視圖
     }
 
     @PostMapping("/logout")
