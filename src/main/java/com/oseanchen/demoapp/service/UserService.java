@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -64,6 +66,23 @@ public class UserService {
 
     public User getUserByEmail(String email) {
         return userDao.findByEmail(email);
+    }
+
+    public List<User> getAllUsers() {
+        List<User> userList =  userDao.findAll();
+        HashMap<Integer, Object> map = new HashMap();
+
+        for (int i = 0; i < userList.size(); i++) {
+            map.put(i, userList.get(i));
+        }
+
+        for(User user: userList) {
+            log.info(user.toString());
+        }
+
+
+        log.info(String.valueOf(map));
+        return userList;
     }
 
 }
