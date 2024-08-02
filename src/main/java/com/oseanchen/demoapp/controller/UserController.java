@@ -69,10 +69,10 @@ public class UserController {
             User user = userService.login(userLoginRequest);
 
             if (user != null) {
-                session.setAttribute("userId", user.getUserId());
+                session.setAttribute("userId", user.getId());
                 session.setAttribute("userEmail", user.getEmail());
                 Map<String, Object> map = new HashMap<>();
-                map.put("userId", user.getUserId());
+                map.put("userId", user.getId());
                 map.put("userEmail", user.getEmail());
                 redisTemplate.opsForHash().putAll("userInfo", map);
 
